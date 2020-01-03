@@ -1,0 +1,23 @@
+﻿{"namespace": "MBGenerator.avro",
+ "type": "record",
+ "name": "imageResponse",
+  "fields": [
+    {
+      "name": "display_x",
+      "type": "int"
+    },
+    {
+      "name": "display_y",
+      "type": "int"
+    },
+    {
+      "name": "url",
+      "type": "string"
+    },
+    {
+      "name": "connectionId",
+      "type": "string"
+    }
+  ]
+}
+

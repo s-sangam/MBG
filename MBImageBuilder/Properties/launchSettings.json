@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "MBImageBuilder": {
+      "commandName": "Project",
+      "commandLineArgs": "-2 2 -1 1"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

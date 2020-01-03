@@ -1,0 +1,42 @@
+﻿{"namespace": "MBGenerator.avro",
+ "type": "record",
+ "name": "imageRequest",
+  "fields": [
+    {
+      "name": "display_x",
+      "type": "int"
+    },
+    {
+      "name": "display_y",
+      "type": "int"
+    },
+    {
+      "name": "min_x",
+      "type": "double"
+    },
+    {
+      "name": "min_y",
+      "type": "double"
+    },
+    {
+      "name": "max_x",
+      "type": "double"
+    },
+    {
+      "name": "max_y",
+      "type": "double"
+    },
+    {
+      "name": "depth",
+      "type": "int"
+    },
+    {
+      "name": "depth",
+      "type": "int"
+    },
+    {
+      "name": "connectionId",
+      "type": "string"
+    }
+  ]
+}

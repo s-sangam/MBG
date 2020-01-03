@@ -1,0 +1,139 @@
+version: '3.4'
+
+networks:
+  kafka-net:
+    driver: bridge
+
+services:
+  mbgenerator:
+    image: ${DOCKER_REGISTRY-}mbgenerator
+    networks:
+        - kafka-net
+    build:
+      context: .
+      dockerfile: MBGenerator/Dockerfile
+
+  zookeeper-server:
+    image: 'wurstmeister/zookeeper:latest'
+    networks:
+        - kafka-net
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - KAFKA_CREATE_TOPICS=imageReq:10:1
+
+  kafka-server1:
+    image: 'wurstmeister/kafka:latest'
+    networks:
+        - kafka-net
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper-server:2181
+      - KAFKA_LISTENERS=PLAINTEXT://:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CREATE_TOPICS=imageReq:10:1
+    ports:
+      - '9092:9092'
+    depends_on:
+      - zookeeper-server
+
+  kafka-server2:
+    image: 'wurstmeister/kafka:latest'  
+    networks:
+        - kafka-net
+    environment:
+      - KAFKA_BROKER_ID=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper-server:2181
+      - KAFKA_LISTENERS=PLAINTEXT://:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+
+    ports:
+      - '9093:9092'
+    depends_on:
+      - zookeeper-server
+
+  schema-registry:
+    image: 'confluentinc/cp-schema-registry'
+    networks:
+    - kafka-net
+    environment:
+      - SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=zookeeper-server:2181
+      - SCHEMA_REGISTRY_HOST_NAME=schema-registry
+      - SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081
+    ports:
+      - '8081:8081'
+    depends_on:
+      - zookeeper-server
+
+  mbimagebuilder:
+    image: ${DOCKER_REGISTRY-}mbimagebuilder
+    networks:
+    - kafka-net
+    build:
+      context: .
+      dockerfile: MBImageBuilder/Dockerfile
+    volumes:
+      - ./data/images:/tmp/images
+    depends_on:
+        - kafka-server1
+        - kafka-server2
+        - mongodb
+
+  mbimagebuilder2:
+    image: ${DOCKER_REGISTRY-}mbimagebuilder
+    networks:
+    - kafka-net
+    build:
+      context: .
+      dockerfile: MBImageBuilder/Dockerfile
+    volumes:
+      - ./data/images:/tmp/images
+    depends_on:
+        - kafka-server1
+        - kafka-server2
+        - mongodb
+
+  mbimagebuilder3:
+    image: ${DOCKER_REGISTRY-}mbimagebuilder
+    networks:
+    - kafka-net
+    build:
+      context: .
+      dockerfile: MBImageBuilder/Dockerfile
+    volumes:
+      - ./data/images:/tmp/images
+    depends_on:
+        - kafka-server1
+        - kafka-server2
+        - mongodb
+
+  mbimagebuilder4:
+    image: ${DOCKER_REGISTRY-}mbimagebuilder
+    networks:
+    - kafka-net
+    build:
+      context: .
+      dockerfile: MBImageBuilder/Dockerfile
+    volumes:
+      - ./data/images:/tmp/images
+    depends_on:
+        - kafka-server1
+        - kafka-server2
+        - mongodb
+
+  mongodb:
+        restart: always
+        networks:
+            - kafka-net
+        image: mongo:latest
+        environment:
+          - MONGO_INITDB_DATABASE=MBImageDatabase
+          - MONGO_INITDB_ROOT_USERNAME=admin
+          - MONGO_INITDB_ROOT_PASSWORD=password123
+        volumes:
+          - ./data/db:/var/micro-data/mongodb/data/db
+          - ./MongoInit:/docker-entrypoint-initdb.d
+        ports:
+          - 27017:27017
+        command: mongod --logpath=/tmp/mongolog #--quiet

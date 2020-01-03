@@ -1,0 +1,21 @@
+﻿@using MBGenerator.ViewModels;
+
+@{
+    ViewData["Title"] = "Cloud Order Detail";
+}
+@model MBGenerator.ViewModels.CloudOrderDetailViewModel
+
+<div class="main-container">
+    <div class="cloud-image">
+        <img src="~/images/successCloudNew.svg" />
+    </div>
+    <div class="content">
+        <div class="content-body">
+            <div class="success-text">Cloud Hello World!</div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div>@Model.Id</div>
+    <div>@Model.Description</div>
+</div>

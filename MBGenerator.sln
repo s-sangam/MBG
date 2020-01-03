@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29609.76
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MBGenerator", "MBGenerator\MBGenerator.csproj", "{EA337662-0144-47E5-BC24-63F143447EAC}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{272B7134-4E92-4990-8E7D-BD1330277AA3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MBImageBuilder", "MBImageBuilder\MBImageBuilder.csproj", "{333BF9B6-5847-474A-9855-BDEA32304EDA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MongoInit", "MongoInit", "{5C18377D-C8C5-4521-84D6-FCBB6F2804BD}"
+	ProjectSection(SolutionItems) = preProject
+		MongoInit\initMongoUsers.js = MongoInit\initMongoUsers.js
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EA337662-0144-47E5-BC24-63F143447EAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA337662-0144-47E5-BC24-63F143447EAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA337662-0144-47E5-BC24-63F143447EAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA337662-0144-47E5-BC24-63F143447EAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{272B7134-4E92-4990-8E7D-BD1330277AA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{272B7134-4E92-4990-8E7D-BD1330277AA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{272B7134-4E92-4990-8E7D-BD1330277AA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{272B7134-4E92-4990-8E7D-BD1330277AA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{333BF9B6-5847-474A-9855-BDEA32304EDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{333BF9B6-5847-474A-9855-BDEA32304EDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{333BF9B6-5847-474A-9855-BDEA32304EDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{333BF9B6-5847-474A-9855-BDEA32304EDA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FEB3AA15-6A25-4385-8577-410D8082F4E9}
+	EndGlobalSection
+EndGlobal
