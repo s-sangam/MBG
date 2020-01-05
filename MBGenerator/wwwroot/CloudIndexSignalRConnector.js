@@ -12,5 +12,8 @@ connection.on("RecieveURL", (imageURL, x, y) => {
     var imageURL = GetJpegURL.concat(imageURL);
     var image_id = "image:";
     image_id = image_id.concat(x, ",", y);
+
+    document.getElementById(image_id).style.opacity = "1.0";
     document.getElementById(image_id).src = imageURL;
+
 });

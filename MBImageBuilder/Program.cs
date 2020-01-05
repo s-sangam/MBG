@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Threading;
 using Confluent.Kafka;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
 using MBGenerator.avro;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
 using Confluent.Kafka.SyncOverAsync;
+using System.Threading.Tasks;
 
 namespace MBImageBuilder
 {
@@ -15,7 +18,7 @@ namespace MBImageBuilder
         {
 
             // #if (DEBUG)
-            #if(false)
+#if (false)
             {
                 // if we're in debug mode, construct an imageRequest object from the args and write the output to files
                 imageRequest _request = new imageRequest();
@@ -49,107 +52,119 @@ namespace MBImageBuilder
                     }
                 }
             }
-            #endif
+#endif
 
             // we're in service mode - set up connections to mongodb & kafka and wait for requests.
 
-            // create a connection to mongo for storing messages
-
-            MongoCredential credential = MongoCredential.CreateCredential("MBImageDatabase", "mongo_user", "password123");
-
-            var settings = new MongoClientSettings
+            // create a connection to mongo for storing messages, and create a GridFS bucket for storing computed images.
+            try
             {
-                Credential = credential,
-                Server = new MongoServerAddress("mongodb", 27017),
-                UseTls = false,
-            };
-
-            var mongoclient = new MongoClient(settings);
-
-            IMongoDatabase db = mongoclient.GetDatabase("MBImageDatabase");
-            IMongoCollection<BsonDocument> buildRequestCollection = db.GetCollection<BsonDocument>("BuildRequests");
-
-            // build the kafka consumer (to receive requests to build an image). use the imageRequest serializer.            
-            IConsumer<Ignore, imageRequest> _consumer;
 
 
-            var conf = new ConsumerConfig
-            {
-                GroupId = "test-consumer-group",
-                BootstrapServers = "kafka-server1:9092,kafka-server2:9092",
-                // Note: The AutoOffsetReset property detemines the start offset in the event
-                // there are not yet any committed offsets for the consumer group for the
-                // topic/partitions of interest. By default, offsets are committed
-                // automatically, so in this example, consumption will only start from the
-                // earliest message in the topic 'my-topic' the first time you run the program.
-                AutoOffsetReset = AutoOffsetReset.Earliest
-            };
+                MongoCredential credential = MongoCredential.CreateCredential("MBImageDatabase", "mongo_user", "password123");
 
-            var schemaRegistryConfig = new SchemaRegistryConfig
-            {
-                Url = "schema-registry:8081"
-            };
+                var settings = new MongoClientSettings
+                {
+                    Credential = credential,
+                    Server = new MongoServerAddress("mongodb", 27017),
+                    UseTls = false,
+                };
 
-            var schemaRegistry = new CachedSchemaRegistryClient(schemaRegistryConfig);
+                var mongoClient = new MongoClient(settings);
 
-            //create the consumer. note the hack to turn the asnyc deserialiser into a sync one. seems to be something confluent are changing...
-            _consumer = new ConsumerBuilder<Ignore, imageRequest>(conf).SetValueDeserializer(new AvroDeserializer<imageRequest>(schemaRegistry).AsSyncOverAsync<imageRequest>()).Build();
-            _consumer.Subscribe("imageReq");
+                IMongoDatabase db = mongoClient.GetDatabase("MBImageDatabase");
+                IMongoCollection<BsonDocument> buildRequestCollection = db.GetCollection<BsonDocument>("BuildRequests");
+                IGridFSBucket bucket = new GridFSBucket(db);
 
-            //build the kafka publisher (to send back the URL of created images)
-            IProducer<Null, imageResponse> _producer;
-            Action<DeliveryReport<Null, string>> _handler;
+                // build the kafka consumer (to receive requests to build an image). use the imageRequest serializer.  
 
-            var config = new ProducerConfig
-            {
-                BootstrapServers = "kafka-server1:9092,kafka-server2:9092"
-            };
+                IConsumer<Ignore, imageRequest> _consumer;
 
-            _handler = r =>
-                Console.WriteLine(!r.Error.IsError
-                    ? $"Delivered message to {r.TopicPartitionOffset}"
-                    : $"Delivery Error: {r.Error.Reason}");
-
-            //_producer = new ProducerBuilder<Null, imageResponse>(config).Build();
-            _producer = new ProducerBuilder<Null, imageResponse>(config).SetValueSerializer(new AvroSerializer<imageResponse>(schemaRegistry)).Build();
-
-            while (true)
-            {
                 try
                 {
-                    var cr = _consumer.Consume(new TimeSpan(0));
-                    if (cr != null)
+                    var conf = new ConsumerConfig
+                    {
+                        GroupId = "test-consumer-group",
+                        BootstrapServers = "kafka-server1:9092,kafka-server2:9092",
+                        AutoOffsetReset = AutoOffsetReset.Earliest
+                    };
+
+                    var schemaRegistryConfig = new SchemaRegistryConfig
+                    {
+                        Url = "schema-registry:8081"
+                    };
+
+                    var schemaRegistry = new CachedSchemaRegistryClient(schemaRegistryConfig);
+
+                    //create the consumer. note the hack to turn the asnyc deserialiser into a sync one. seems to be something confluent are changing...
+                    _consumer = new ConsumerBuilder<Ignore, imageRequest>(conf).SetValueDeserializer(new AvroDeserializer<imageRequest>(schemaRegistry).AsSyncOverAsync<imageRequest>()).Build();
+                    _consumer.Subscribe("imageReq");
+
+                    //build the kafka publisher (to send back the Id of created images to the client)
+                    try
                     {
 
-                        // store the build request in MongoDB
-                        var document = new BsonDocument();
-                        document.Add("message", $"{cr.Value}");
-                        buildRequestCollection.InsertOne(document);
-                        Console.WriteLine($"Consumed message '{cr.Value}' at: '{cr.TopicPartitionOffset}' from partition: '{cr.Partition}'.");
+                        IProducer<Null, imageResponse> _producer;
+                        Action<DeliveryReport<Null, string>> _handler;
 
-                        // build a new image based on the message.
-                        MBImageBuilder newImage = new MBImageBuilder();
-                        var url = newImage.MBCreateImage(cr.Value);
-                        var _response = new imageResponse();
-                        _response.display_x = cr.Value.display_x;
-                        _response.display_y = cr.Value.display_y;
-                        _response.url = url;
-                        _response.connectionId = cr.Value.connectionId;
+                        var config = new ProducerConfig
+                        {
+                            BootstrapServers = "kafka-server1:9092,kafka-server2:9092"
+                        };
 
-                        // send the image Id back to the client
-                        _producer.ProduceAsync("imageResponse", new Message<Null, imageResponse> { Value = _response });
-                        _producer.Flush();
+                        _handler = r =>
+                            Console.WriteLine(!r.Error.IsError
+                                ? $"Delivered message to {r.TopicPartitionOffset}"
+                                : $"Delivery Error: {r.Error.Reason}");
 
+                        _producer = new ProducerBuilder<Null, imageResponse>(config).SetValueSerializer(new AvroSerializer<imageResponse>(schemaRegistry)).Build();
+
+                        // start the main loop and wait for messages to process
+                        while (true)
+                        {
+                            try
+                            {
+                                var cr = _consumer.Consume(new TimeSpan(0));
+                                if (cr != null)
+                                {
+
+                                    // store the build request in MongoDB
+                                    var document = new BsonDocument();
+                                    document.Add("message", $"{cr.Value}");
+                                    buildRequestCollection.InsertOne(document);
+                                    Console.WriteLine($"Consumed message '{cr.Value}' at: '{cr.TopicPartitionOffset}' from partition: '{cr.Partition}'.");
+
+                                    // build a new image based on the message.
+                                    MBImageBuilder newImage = new MBImageBuilder(cr.Value, _producer, bucket);
+                                    // start the calc in a new thread.
+                                    Parallel.Invoke(() => { newImage.MBCreateImage(); });
+
+                                }
+                            }
+                            catch (ConsumeException e)
+                            {
+                                Console.WriteLine($"Error occured: {e.Error.Reason}");
+                            }
+                        }
                     }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Error occured creating kafka publisher: {e.ToString()}");
+                        Environment.Exit(0);
+                    }
+
                 }
-                catch (ConsumeException e)
+                catch (Exception e)
                 {
-                    Console.WriteLine($"Error occured: {e.Error.Reason}");
+                    Console.WriteLine($"Error occured creating kafka consumer: {e.ToString()}");
+                    Environment.Exit(0);
                 }
             }
-
-            //_consumer.Close();
-            
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error occured creating connection to mongodb: {e.ToString()}");
+                Environment.Exit(0);
+            }
         }
     }
 }

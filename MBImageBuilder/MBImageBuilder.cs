@@ -7,6 +7,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using MBGenerator.avro;
+using Confluent.Kafka;
 
 namespace MBImageBuilder
 {
@@ -14,48 +15,32 @@ namespace MBImageBuilder
     public class MBImageBuilder
     {
 
-        MongoClient mongoClient;
-        IGridFSBucket bucket;
+        IGridFSBucket _bucket;
+        imageRequest _request;
+        IProducer<Null, imageResponse> _producer;
+
         bool toFile = false;
 
-        public MBImageBuilder(bool _toFile = false)
+        public MBImageBuilder(imageRequest request, IProducer<Null, imageResponse> producer, IGridFSBucket bucket)
         {
-            toFile = _toFile;
-            if (!toFile)
-            {
-                // set up mongo connection
-                try
-                {
-                    MongoCredential credential = MongoCredential.CreateCredential("MBImageDatabase", "mongo_user", "password123");
-
-                    var settings = new MongoClientSettings
-                    {
-                        Credential = credential,
-                        Server = new MongoServerAddress("mongodb", 27017),
-                        UseTls = false,
-                    };
-
-                    mongoClient = new MongoClient(settings);
-
-                    bucket = new GridFSBucket(mongoClient.GetDatabase("MBImageDatabase"));
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Error occured opening connectiont to MongoDB: {e.ToString()}");
-                }
-            }
+            _request = request;
+            _producer = producer;
+            _bucket = bucket;
         }
-        public string MBCreateImage(imageRequest _request)
+        public void MBCreateImage()
         {
             int imageWidth = 100;
             int imageHeight = 100;
+
             Bitmap bmp = new Bitmap(imageWidth, imageHeight);
+
             double cx = 0;
             double cy = 0;
             double x_step = (_request.max_x - _request.min_x) / imageWidth;
             double y_step = (_request.max_y - _request.min_y) / imageHeight;
             double escapeCount = 0;
-            double logMax = Math.Log(10000 * _request.depth);
+            double logMax = Math.Log(1000 * _request.depth);
+
 
             //run through each pixel in the bitmap, and calculate whether each pixel is in the mandelbrot set or not
             //based on the co-ordinates of the request.
@@ -71,21 +56,16 @@ namespace MBImageBuilder
 
                     escapeCount = EscapeCount(cx, cy, _request.depth);
 
-                    if (escapeCount < (10000 * _request.depth))
+                    if (escapeCount < (1000 * _request.depth))
                     {
 
                         // use a log scale to get some nice grading in the colours
                         escapeCount = (Math.Log(escapeCount) / logMax);
 
-                        // flip the colours every other depth, just to make it more interesting.
-                        if (_request.depth % 2 == 1)
-                        {
-                            escapeCount = 1 - escapeCount;
-                        }
-
                         // get a nice colour from looking up the hue of the escape count.
                         // note the test for zero puts a border around the image 
                         ColorRGB colorRGB;
+                        ColorRGB colourRGB;
 
                         if (x == 0 | y == 0)
                         {
@@ -96,8 +76,21 @@ namespace MBImageBuilder
                             colorRGB = HSL2RGB(escapeCount, 0.5, 0.5);
                         }
 
+                        // switch the colours around to make it a bit more interesting.
+                        switch(_request.depth % 4)
+                        {
+                            case 0:
+                                { colourRGB.R = colorRGB.G; colourRGB.G = colorRGB.R; colourRGB.B = colorRGB.B; break; }
+                            case 1:
+                                { colourRGB.R = colorRGB.B; colourRGB.G = colorRGB.G; colourRGB.B = colorRGB.R; break; }
+                            case 2:
+                                { colourRGB.R = colorRGB.R; colourRGB.G = colorRGB.B; colourRGB.B = colorRGB.G; break; }
+                            default:
+                                { colourRGB.R = colorRGB.R; colourRGB.G = colorRGB.G; colourRGB.B = colorRGB.B; break; }
+                        }
+
                         // set the pixel colour
-                        bmp.SetPixel(x, y, Color.FromArgb(colorRGB.R, colorRGB.B, colorRGB.G));
+                        bmp.SetPixel(x, y, Color.FromArgb(colourRGB.R, colourRGB.B, colourRGB.G));
                     }
                     else
                     {
@@ -117,6 +110,8 @@ namespace MBImageBuilder
                 }
             }
 
+            // assuming everything kafka and mongo is threadsafe....
+
             if (toFile)
             {
                 // create a new file and write the image to the file in jpeg format.
@@ -125,7 +120,6 @@ namespace MBImageBuilder
                 FileStream fileStream = File.Create(filename);
                 bmp.Save(fileStream, System.Drawing.Imaging.ImageFormat.Jpeg);
                 fileStream.Close();
-                return filename;
             }
             else
             {
@@ -134,9 +128,19 @@ namespace MBImageBuilder
                 MemoryStream tmpStream = new MemoryStream();
                 bmp.Save(tmpStream, System.Drawing.Imaging.ImageFormat.Jpeg);
                 tmpStream.Position = 0;
-                var id = bucket.UploadFromStream("filename", tmpStream);
+                var id = _bucket.UploadFromStream("filename", tmpStream);
                 bmp.Dispose();
-                return (id.ToString());
+
+
+                var _response = new imageResponse();
+                _response.display_x = _request.display_x;
+                _response.display_y = _request.display_y;
+                _response.url = id.ToString();
+                _response.connectionId = _request.connectionId;
+
+                // send the image Id back to the client
+                _producer.ProduceAsync("imageResponse", new Message<Null, imageResponse> { Value = _response });
+                _producer.Flush();
             }
         }
 

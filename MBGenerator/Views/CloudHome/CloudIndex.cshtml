@@ -13,7 +13,7 @@
 </style>
 
 <script>
-    function imageclick(x, y) {
+    function imageclick(x, y, elem) {
         var min_x = parseFloat(document.getElementById("min_x").value);
         var max_x = parseFloat(document.getElementById("max_x").value);
         var min_y = parseFloat(document.getElementById("min_y").value);
@@ -31,7 +31,7 @@
         document.getElementById("min_y").value = new_min_y;
         document.getElementById("max_y").value = new_max_y;
         document.getElementById("depth").value = depth;
-
+        elem.style.opacity = 0.5;
         connection.invoke("CalcMB", x, y, new_min_x, new_max_x, new_min_y, new_max_y, depth).catch(function (err) {
             return console.error(err.toString());
         });
@@ -85,7 +85,7 @@
                     {
                         image_x1 = image_x + x_step_size;
 
-                        ImageRow = "<img id=\"image:" + x + "," + y + "\" src=\"/MBStartImages/Image" + x + "-" + y + ".jpg\" onclick=imageclick(" + x + "," + y + ")>";
+                        ImageRow = "<img id=\"image:" + x + "," + y + "\" src=\"/MBStartImages/Image" + x + "-" + y + ".jpg\" onclick=imageclick(" + x + "," + y + ",this)>";
                         //ImageRow = "<img id=\"image:" + x + "," + y + "\" src=\"/MBStartImages/Image" + x + "-" + y + ".jpg\" onclick=uff(1,2) />";
 
                         @Html.Raw(ImageRow)
