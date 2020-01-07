@@ -67,6 +67,8 @@ namespace MBGenerator
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 
             });
+
+            Console.WriteLine("MGGenerator startup complete");
         }
     }
 }

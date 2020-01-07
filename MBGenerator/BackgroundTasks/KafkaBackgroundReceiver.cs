@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Confluent.Kafka;
-using MBGenerator;
-using Microsoft.AspNet.SignalR;
-using Microsoft.AspNet.SignalR.Hubs;
 using MBGenerator.avro;
 using Confluent.SchemaRegistry.Serdes;
 using Confluent.SchemaRegistry;
@@ -30,7 +25,7 @@ namespace MBGenerator.BackgroundTasks
             var conf = new ConsumerConfig
             {
                 GroupId = "test-consumer-group",
-                BootstrapServers = "kafka-server1:9092,kafka-server2:9092",
+                BootstrapServers = "kafka-server1:9092",
                 // Note: The AutoOffsetReset property detemines the start offset in the event
                 // there are not yet any committed offsets for the consumer group for the
                 // topic/partitions of interest. By default, offsets are committed
@@ -41,7 +36,7 @@ namespace MBGenerator.BackgroundTasks
 
             var schemaRegistryConfig = new SchemaRegistryConfig
             {
-                Url = "schema-registry:8081"
+                Url = "kafka-schema-registry:8081"
             };
 
             var schemaRegistry = new CachedSchemaRegistryClient(schemaRegistryConfig);

@@ -8,7 +8,7 @@ connection.start().then(function () {
 });
 
 connection.on("RecieveURL", (imageURL, x, y) => {
-    var GetJpegURL = "/CloudHome/GetJpegById?Id=";
+    var GetJpegURL = "/Home/GetJpegById?Id=";
     var imageURL = GetJpegURL.concat(imageURL);
     var image_id = "image:";
     image_id = image_id.concat(x, ",", y);

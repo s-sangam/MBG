@@ -1,0 +1,34 @@
+prerequesits:
+1. google cloud tools
+2. chocolatey (to install kompose and helm)
+3. kompose - though the charts are now built, but to re-create them from docker-compose.yaml.
+4. helm
+
+# start the gcloud session:
+gcloud auth login
+
+# install the project:
+
+# first you need to install the configmap to configure mongo user. for some reason helm doesn't like this file.
+# you can find it in the same directory as this
+kubectl apply -f configmap-mongoinit.yaml
+
+# second, using helm for all the rest, from the local directory with mbgenerator (containing charts) folder in it.
+helm install mbgenerator --generate-name
+
+# to uninstall:
+helm uninstall mbgenerator-{whatever ID it was given}
+
+###some useful kubectl commands:
+# create a k8s manifest/chart for an existing element (configmap mongoinit in this case) and pipe output to a file
+kubectl get configmap mongoinit -o yaml > configmap-mongoinit.yaml
+
+
+# in order to set the number of partitions on the imageReq topic (seems the environment variable is ignored)
+
+# open a shell onto the kafka broker:
+kubectl exec -it {kafka-server1-xxxx} -- /bin/bash
+
+# run the following command:
+cd /opt/bin/kafka
+./kafka-topics.sh --zookeeper zookeeper-server:2181 --topic imageReq --alter --partitions 10

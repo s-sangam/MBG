@@ -14,6 +14,44 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MongoInit", "MongoInit", "{
 		MongoInit\initMongoUsers.js = MongoInit\initMongoUsers.js
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HelmCharts", "HelmCharts", "{8AAE15B7-0E20-41AA-A578-E436B0B4EF81}"
+	ProjectSection(SolutionItems) = preProject
+		helmCharts\Charts\configmap-mongoinit.yaml = helmCharts\Charts\configmap-mongoinit.yaml
+		helmCharts\Charts\Install notes.txt = helmCharts\Charts\Install notes.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mbgenerator", "mbgenerator", "{068C6EAC-DA77-4B84-A2C1-D66D06F77992}"
+	ProjectSection(SolutionItems) = preProject
+		helmCharts\Charts\mbgenerator\.helmignore = helmCharts\Charts\mbgenerator\.helmignore
+		helmCharts\Charts\mbgenerator\Chart.yaml = helmCharts\Charts\mbgenerator\Chart.yaml
+		helmCharts\Charts\mbgenerator\values.yaml = helmCharts\Charts\mbgenerator\values.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "charts", "charts", "{49E2EF5E-5937-4C56-8375-EF654CBB7E97}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{F2B5FCEB-708C-41B8-99E4-E0D897A0B5A0}"
+	ProjectSection(SolutionItems) = preProject
+		helmCharts\Charts\mbgenerator\templates\_helpers.tpl = helmCharts\Charts\mbgenerator\templates\_helpers.tpl
+		helmCharts\Charts\mbgenerator\templates\deployment.yaml = helmCharts\Charts\mbgenerator\templates\deployment.yaml
+		helmCharts\Charts\mbgenerator\templates\ingress.yaml = helmCharts\Charts\mbgenerator\templates\ingress.yaml
+		helmCharts\Charts\mbgenerator\templates\kafka-net-networkpolicy.yaml = helmCharts\Charts\mbgenerator\templates\kafka-net-networkpolicy.yaml
+		helmCharts\Charts\mbgenerator\templates\kafka-schema-registry-deployment.yaml = helmCharts\Charts\mbgenerator\templates\kafka-schema-registry-deployment.yaml
+		helmCharts\Charts\mbgenerator\templates\kafka-schema-registry-service.yaml = helmCharts\Charts\mbgenerator\templates\kafka-schema-registry-service.yaml
+		helmCharts\Charts\mbgenerator\templates\kafka-server1-deployment.yaml = helmCharts\Charts\mbgenerator\templates\kafka-server1-deployment.yaml
+		helmCharts\Charts\mbgenerator\templates\kafka-server1-service.yaml = helmCharts\Charts\mbgenerator\templates\kafka-server1-service.yaml
+		helmCharts\Charts\mbgenerator\templates\loadbalancer.yaml.txt = helmCharts\Charts\mbgenerator\templates\loadbalancer.yaml.txt
+		helmCharts\Charts\mbgenerator\templates\mbgenerator-deployment.yaml = helmCharts\Charts\mbgenerator\templates\mbgenerator-deployment.yaml
+		helmCharts\Charts\mbgenerator\templates\mbimagebuilder-deployment.yaml = helmCharts\Charts\mbgenerator\templates\mbimagebuilder-deployment.yaml
+		helmCharts\Charts\mbgenerator\templates\mongodb-deployment.yaml = helmCharts\Charts\mbgenerator\templates\mongodb-deployment.yaml
+		helmCharts\Charts\mbgenerator\templates\mongodb-service.yaml = helmCharts\Charts\mbgenerator\templates\mongodb-service.yaml
+		helmCharts\Charts\mbgenerator\templates\service.yaml = helmCharts\Charts\mbgenerator\templates\service.yaml
+		helmCharts\Charts\mbgenerator\templates\serviceaccount.yaml = helmCharts\Charts\mbgenerator\templates\serviceaccount.yaml
+		helmCharts\Charts\mbgenerator\templates\zookeeper-server-deployment.yaml = helmCharts\Charts\mbgenerator\templates\zookeeper-server-deployment.yaml
+		helmCharts\Charts\mbgenerator\templates\zookeeper-server-service.yaml = helmCharts\Charts\mbgenerator\templates\zookeeper-server-service.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A3AE72B7-3D9C-4252-B1A2-66AEA37E9D42}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +73,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{068C6EAC-DA77-4B84-A2C1-D66D06F77992} = {8AAE15B7-0E20-41AA-A578-E436B0B4EF81}
+		{49E2EF5E-5937-4C56-8375-EF654CBB7E97} = {068C6EAC-DA77-4B84-A2C1-D66D06F77992}
+		{F2B5FCEB-708C-41B8-99E4-E0D897A0B5A0} = {068C6EAC-DA77-4B84-A2C1-D66D06F77992}
+		{A3AE72B7-3D9C-4252-B1A2-66AEA37E9D42} = {F2B5FCEB-708C-41B8-99E4-E0D897A0B5A0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FEB3AA15-6A25-4385-8577-410D8082F4E9}

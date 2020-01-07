@@ -76,6 +76,8 @@ namespace MBImageBuilder
                 IMongoCollection<BsonDocument> buildRequestCollection = db.GetCollection<BsonDocument>("BuildRequests");
                 IGridFSBucket bucket = new GridFSBucket(db);
 
+                Console.WriteLine("Connected to Mongo");
+
                 // build the kafka consumer (to receive requests to build an image). use the imageRequest serializer.  
 
                 IConsumer<Ignore, imageRequest> _consumer;
@@ -85,13 +87,13 @@ namespace MBImageBuilder
                     var conf = new ConsumerConfig
                     {
                         GroupId = "test-consumer-group",
-                        BootstrapServers = "kafka-server1:9092,kafka-server2:9092",
+                        BootstrapServers = "kafka-server1:9092",
                         AutoOffsetReset = AutoOffsetReset.Earliest
                     };
 
                     var schemaRegistryConfig = new SchemaRegistryConfig
                     {
-                        Url = "schema-registry:8081"
+                        Url = "kafka-schema-registry:8081"
                     };
 
                     var schemaRegistry = new CachedSchemaRegistryClient(schemaRegistryConfig);
@@ -99,6 +101,8 @@ namespace MBImageBuilder
                     //create the consumer. note the hack to turn the asnyc deserialiser into a sync one. seems to be something confluent are changing...
                     _consumer = new ConsumerBuilder<Ignore, imageRequest>(conf).SetValueDeserializer(new AvroDeserializer<imageRequest>(schemaRegistry).AsSyncOverAsync<imageRequest>()).Build();
                     _consumer.Subscribe("imageReq");
+
+                    Console.WriteLine("Kafka consumer created for topic imageReq");
 
                     //build the kafka publisher (to send back the Id of created images to the client)
                     try
@@ -109,7 +113,7 @@ namespace MBImageBuilder
 
                         var config = new ProducerConfig
                         {
-                            BootstrapServers = "kafka-server1:9092,kafka-server2:9092"
+                            BootstrapServers = "kafka-server1:9092"
                         };
 
                         _handler = r =>
@@ -119,6 +123,9 @@ namespace MBImageBuilder
 
                         _producer = new ProducerBuilder<Null, imageResponse>(config).SetValueSerializer(new AvroSerializer<imageResponse>(schemaRegistry)).Build();
 
+                        Console.WriteLine("Kafka producer created");
+                        Console.WriteLine("Now waiting for messages");
+
                         // start the main loop and wait for messages to process
                         while (true)
                         {
@@ -127,23 +134,29 @@ namespace MBImageBuilder
                                 var cr = _consumer.Consume(new TimeSpan(0));
                                 if (cr != null)
                                 {
+                                    Console.WriteLine($"Consumed message '{cr.Value}' at: '{cr.TopicPartitionOffset}' from partition: '{cr.Partition}'.");
 
                                     // store the build request in MongoDB
                                     var document = new BsonDocument();
                                     document.Add("message", $"{cr.Value}");
                                     buildRequestCollection.InsertOne(document);
-                                    Console.WriteLine($"Consumed message '{cr.Value}' at: '{cr.TopicPartitionOffset}' from partition: '{cr.Partition}'.");
+
+                                    Console.WriteLine($"Stored image request message '{cr.Value}' in Mongo");
 
                                     // build a new image based on the message.
                                     MBImageBuilder newImage = new MBImageBuilder(cr.Value, _producer, bucket);
                                     // start the calc in a new thread.
-                                    Parallel.Invoke(() => { newImage.MBCreateImage(); });
+
+                                    Console.WriteLine($"Starting image build for '{cr.Value}'");
+
+                                    //Parallel.Invoke(() => { newImage.MBCreateImage(); });
+                                    Task task = Task.Run(() => { newImage.MBCreateImage(); });
 
                                 }
                             }
                             catch (ConsumeException e)
                             {
-                                Console.WriteLine($"Error occured: {e.Error.Reason}");
+                                Console.WriteLine($"Error occured building image: {e.Error.Reason}");
                             }
                         }
                     }

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mbgen-lb-service
+spec:
+  type: LoadBalancer
+  selector:
+    io.kompose.service: mbgenerator
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80

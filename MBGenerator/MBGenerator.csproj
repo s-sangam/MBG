@@ -8,6 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\CloudOrder.cs" />
+    <Compile Remove="Models\ErrorViewModel.cs" />
+    <Compile Remove="ViewModels\CloudOrderDetailViewModel.cs" />
+    <Compile Remove="ViewModels\CloudOrderEdit.cs" />
+    <Compile Remove="ViewModels\CloudOrderViewModel.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Views\Home\CloudOrderDetail.cshtml" />
+    <Content Remove="Views\Home\NewOrder.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Confluent.Apache.Avro" Version="1.7.7.7" />
     <PackageReference Include="Confluent.Kafka" Version="1.3.0" />
     <PackageReference Include="Confluent.SchemaRegistry" Version="1.3.0" />
@@ -24,6 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Models\" />
     <Folder Include="wwwroot\MBStartImages\" />
   </ItemGroup>
 

@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\colin\Kompose\kompose-windows-amd64.exe convert
+    kompose.version: 1.20.0 (f3d54d784)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: zookeeper-server
+  name: zookeeper-server
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\colin\Kompose\kompose-windows-amd64.exe convert
+        kompose.version: 1.20.0 (f3d54d784)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/kafka-net: "true"
+        io.kompose.service: zookeeper-server
+    spec:
+      containers:
+      - env:
+        - name: ALLOW_ANONYMOUS_LOGIN
+          value: "yes"
+        - name: KAFKA_CREATE_TOPICS
+          value: imageReq:10:1
+        image: wurstmeister/zookeeper:latest
+        name: zookeeper-server
+        ports:
+        - containerPort: 2181
+        resources: {}
+      restartPolicy: Always
+status: {}

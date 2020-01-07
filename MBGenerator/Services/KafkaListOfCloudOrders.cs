@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
-using MBGenerator.Models;
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
 using MBGenerator.avro;
-using Avro.Generic;
 
 namespace MBGenerator.Services
 {
@@ -17,7 +11,6 @@ namespace MBGenerator.Services
  
         IProducer<Null, imageRequest> _producer;
         Action<DeliveryReport<Null, imageRequest>> _handler;
-        int _idCounter = 0;
 
         public KafkaListOfCloudOrders()
         {
@@ -25,12 +18,12 @@ namespace MBGenerator.Services
 
             var config = new ProducerConfig
             {
-                BootstrapServers = "kafka-server1:9092,kafka-server2:9092"
+                BootstrapServers = "kafka-server1:9092"
             };
 
             var schemaRegistryConfig = new SchemaRegistryConfig
             {
-                Url = "schema-registry:8081"
+                Url = "kafka-schema-registry:8081"
             };
 
             var schemaRegistry = new CachedSchemaRegistryClient(schemaRegistryConfig);
@@ -42,22 +35,6 @@ namespace MBGenerator.Services
 
             _producer = new ProducerBuilder<Null, imageRequest>(config).SetValueSerializer(new AvroSerializer<imageRequest>(schemaRegistry)).Build();
 
-        }
-
-        public CloudOrder GetCloudOrderById(int Id)
-        {
-            var _orders = new CloudOrder();
-            _orders.Description = "depricate this";
-            _orders.Id = 1;
-            return _orders;
-        }
-
-        public IEnumerable<CloudOrder> GetAllCloudOrders()
-        {
-            // clean this up later, but for now return an empty list.
-            List<CloudOrder> _orders = new List<CloudOrder> { };
-            
-            return _orders;
         }
 
         public void SendImageRequest(int display_x , int display_y , double min_x, double min_y, double max_x, double max_y, int depth, string connectionId)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
@@ -40,6 +41,8 @@ namespace MBImageBuilder
             double y_step = (_request.max_y - _request.min_y) / imageHeight;
             double escapeCount = 0;
             double logMax = Math.Log(1000 * _request.depth);
+
+            Console.WriteLine($"Thread: {Task.CurrentId.ToString()} started building image for connection {_request.connectionId}, {_request.display_x}, {_request.display_y}");
 
 
             //run through each pixel in the bitmap, and calculate whether each pixel is in the mandelbrot set or not
@@ -142,6 +145,9 @@ namespace MBImageBuilder
                 _producer.ProduceAsync("imageResponse", new Message<Null, imageResponse> { Value = _response });
                 _producer.Flush();
             }
+
+            Console.WriteLine($"Thread: {Task.CurrentId.ToString()} finished building image for connection {_request.connectionId}, {_request.display_x}, {_request.display_y}");
+
         }
 
         // calculate the number of iterations needed to escape from the set (with a max of 10000 for now)
