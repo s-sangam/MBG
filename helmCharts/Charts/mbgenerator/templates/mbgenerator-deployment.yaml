@@ -25,5 +25,9 @@ spec:
       - image: yamniloc/mbgenerator:latest
         name: mbgenerator
         resources: {}
+      - name: SECRET_MONGO_PASSWORD
+        value: password123
+      - name: SECRET_MONGO_USER
+        value: mongo_use
       restartPolicy: Always
 status: {}

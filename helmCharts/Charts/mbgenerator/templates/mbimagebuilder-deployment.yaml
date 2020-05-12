@@ -25,5 +25,10 @@ spec:
       - image: yamniloc/mbimagebuilder:latest
         name: mbimagebuilder
         resources: {}
+        env:
+        - name: SECRET_MONGO_PASSWORD
+          value: password123
+        - name: SECRET_MONGO_USER
+          value: mongo_user
       restartPolicy: Always
 status: {}
