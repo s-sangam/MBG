@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -11,6 +11,9 @@ metadata:
 spec:
   replicas: 1
   strategy: {}
+  selector:
+    matchLabels:
+      io.kompose.service: mbgenerator
   template:
     metadata:
       annotations:
@@ -29,6 +32,6 @@ spec:
         - name: SECRET_MONGO_PASSWORD 
           value: password123
         - name: SECRET_MONGO_USER
-          value: mongo_use
+          value: mongo_user
       restartPolicy: Always
 status: {}
