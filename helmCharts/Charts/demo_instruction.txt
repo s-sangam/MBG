@@ -1,0 +1,18 @@
+useful demo commands:
+
+1)	Create AKS cluster ( resource group: demo-team60-rg )
+    az aks create --resource-group demo-team60-rg --name demoAKS --node-count 1 --enable-addons monitoring 
+2) Set context	
+    az aks get-credentials --resource-group demo-team60-rg --name demoAKS 
+3)	set configmap 
+    kubectl apply -f configmap-mongoinit.yaml
+4)	Install app via helm  
+    helm install mbg mbgenerator
+5) Check pod status and ensure ll pods are running 
+    kubectl get pods
+6)	Find the external ip address for the app 
+    kubectl get services ( pick ip address of the load balancer )
+7)	Run app from browser and demo app
+    http://csdemo.westeurope.cloudapp.azure.com/
+
+
