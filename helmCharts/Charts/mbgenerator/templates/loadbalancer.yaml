@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    service.beta.kubernetes.io/azure-dns-label-name: csdemo1
+    service.beta.kubernetes.io/azure-dns-label-name: csdemo
   name: mbgen-lb-service
 spec:
   type: LoadBalancer
